@@ -18,6 +18,26 @@
 		<script src="js/skel.min.js"></script>
 		<script src="js/skel-layers.min.js"></script>
 		<script src="js/init.js"></script>
+		<script src="https://js.paystack.co/v1/inline.js"></script>
+
+		<style>
+			#payment-form {
+				/* border: 1px solid red; */
+				display: flex;
+				flex-direction: column;
+				text-align: left;
+				gap: 1rem;
+			}
+
+			#payment-form label {
+				font-weight: 500;
+				display: block;
+			}
+
+			#payment-form input {
+				padding: 1rem;
+			}
+		</style>
 		<!-- <noscript>
 			<link rel="stylesheet" href="css/skel.css" />
 			<link rel="stylesheet" href="css/style.css" />
@@ -42,7 +62,7 @@
 										<h2>Welcome to PLI</h2>
 										<span class="byline">Prayer Line International is more than a community; it is a sacred space where prayers become conversations with the Divine. Here, we gather to share in the strength of collective spirituality, finding solace and inspiration in our shared journey of faith.</span>
 									</header>
-									<a href="#" class="button alt">Pay Dues / Donate</a>
+									<a href="#pay-now" class="button alt">Pay Dues / Donate</a>
 								</section>			
 							</div>
 						</div>
@@ -122,6 +142,45 @@
 				</section>
 			</div>
 
+			<div class="wrapper style2" id="pay-now">
+				<section class="container">
+					<header class="major">
+						<h2>Pay Dues or Donate</h2>
+						<span class="byline">We welcome all donations and dues</span>
+					</header>
+					<form id="payment-form">
+						<div class="form-group">
+							<label for="payment-type">Pyament Type</label>
+							<select name="payment-type" id="payment-type" style="padding-block: 1.1rem;">
+								<option value="DUES" selected="selected">DUES</option>
+								<option value="DONATION">DONATION</option>
+							</select>
+						</div>
+						<!-- Amount Input -->
+						<div class="form-group">
+							<label for="amount">Amount (GHS)</label>
+							<input type="number" id="amount" name="amount" placeholder="Enter amount" required>
+						</div>
+
+						<div class="form-group">
+							<label for="name">Name</label>
+							<input type="text" id="name" name="name" placeholder="Enter Fullname" required>
+						</div>
+						
+						<!-- Email Input -->
+						<div class="form-group">
+							<label for="email">Email</label>
+							<input type="email" id="email" name="email" placeholder="Enter email" required>
+						</div>
+					
+						<br>
+						<!-- Custom Button to Trigger Payment -->
+						<button type="submit" class="button" style="width: max-content; margin-left: auto;">Pay Now</button>
+					</form>
+					
+				</section>
+			</div>
+
 		<!-- Footer -->
 			<div id="footer">
 				<div class="container">
@@ -159,6 +218,48 @@
 
 				</div>
 			</div>
+			<script>
+				const paymentForm = document.getElementById('payment-form');
+				paymentForm.addEventListener("submit", payWithPaystack, false);
 
+				function payWithPaystack(e) {
+					e.preventDefault();
+					// Retrieve form values
+					let amount = document.getElementById('amount').value * 100; 
+					let email = document.getElementById('email').value;
+					let paymentType = document.getElementById('payment-type').value;
+					let name = document.getElementById('name').value;
+
+					// Initialize Paystack
+					let handler = PaystackPop.setup({
+						key: 'pk_test_ee42fb07c3abbedaef34db89385ac8f122064db3',
+						email: email,
+						amount: amount,
+						currency: 'GHS',
+						ref: paymentType + '-for-' + String(name).replaceAll(" ", "-") + '-' + Math.floor((Math.random() * 1000000000) + 1), // Generate a unique reference
+						metadata: {
+						custom_fields: [
+							{
+								display_name: "Email",
+								variable_name: "email",
+								value: email
+							}
+						]
+						},
+						callback: function(response) {
+							// Handle successful payment (You can perform further actions here)
+							alert('Payment successful! Transaction reference: ' + response.reference);
+							paymentForm.reset()
+						},
+						onClose: function() {
+							// Handle payment cancelation
+							alert('Payment canceled');
+						}
+					});
+
+					// Open Paystack checkout form
+					handler.openIframe();
+				}
+			</script>
 	</body>
 </html>
